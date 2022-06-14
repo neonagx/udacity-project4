@@ -1,12 +1,11 @@
 # TODO: Change the name of the org 
-org: pbaik
+org: neonagx
 app: serverless-todo-app
 service: serverless-todo-app
 
 plugins:
   - serverless-webpack
   - serverless-iam-roles-per-function
-  - serverless-plugin-tracing
 
 provider:
   name: aws
@@ -90,7 +89,7 @@ functions:
           authorizer: Auth
           request:
             schemas:
-              application/json: ${file(models/update-todo.json)}
+              application/json: ${file(src/models/update-todo.json)}
 
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
