@@ -1,13 +1,13 @@
 import * as AWS from 'aws-sdk'
 import * as AWSXRay from 'aws-xray-sdk'
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
-// import { createLogger } from '../utils/logger'
+import { createLogger } from '../utils/logger'
 import { TodoItem } from '../models/TodoItem'
 // import { TodoUpdate } from '../models/TodoUpdate';
 
 const XAWS = AWSXRay.captureAWS(AWS)
 
-// const logger = createLogger('TodosAccess')
+const logger = createLogger('TodosAccess')
 
 // TODO: Implement the dataLayer logic
 
@@ -34,6 +34,7 @@ export class TodoDataLayer {
         const result = await this.docClient.query(param).promise();
         const allItems = result.Items;
 
+        logger.info('getallTodo', allItems)
         return allItems as TodoItem[];
     }
 
@@ -44,7 +45,7 @@ export class TodoDataLayer {
         }
 
         await this.docClient.put(param).promise();
-
+        logger.info('createTodo', todoItem);
         return todoItem;
     }
 
@@ -57,6 +58,7 @@ export class TodoDataLayer {
             }
         };
 
+        logger.info('deleteTodo', param);
         await this.docClient.delete(param).promise();
 
         return "Successful Todo deletion"
@@ -77,6 +79,8 @@ export class TodoDataLayer {
                 ":d": todoItem.done
             }
         };
+        
+        logger.info('updateTodo', param);
 
         await this.docClient.update(param).promise();
 
@@ -103,7 +107,9 @@ export class TodoDataLayer {
           }
         }
     
-        await this.docClient.update(param).promise()
+        await this.docClient.update(param).promise();
+
+        logger.info('generateUrl', signedUrl);
     
         return signedUrl
       }

@@ -45,13 +45,55 @@ functions:
 
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
-    role: authRole
+    iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - logs:CreateLogGroup
+        - logs:CreateLogStream
+        - logs:PutLogEvents
+      Resource:
+        - "Fn::Join":
+        - ":"
+        - - "arn:aws:logs"
+          - Ref: "AWS::Region"
+          - Ref: "AWS::AccountId"
+          - "log-group:/aws/lambda/*:*:*"
+    - Effect: Allow
+      Action:
+        - xray:PutTraceSegments
+        - xray:PutTelemetryRecords
+      Resource: "*"
 
   # TODO: Configure this function - 
   # Provide iamRoleStatements property for performing Actions on DynamoDB
   GetTodos:
-    role: getTodosRole
     handler: src/lambda/http/getTodos.handler
+    iamRoleStatements: 
+      - Effect: Allow
+        Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+        Resource:
+          - "Fn::Join":
+          - ":"
+          - - "arn:aws:logs"
+            - Ref: "AWS::Region"
+            - Ref: "AWS::AccountId"
+            - "log-group:/aws/lambda/*:*:*"
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
     events:
       - http:
           method: get
@@ -64,8 +106,29 @@ functions:
   # To refer to an AWS resource defined in the "Resources" section, you can use "Resource: !GetAtt <resource-name>.Arn"
   # To validate incoming HTTP requests, we have provided the request schemas in function definition below. 
   CreateTodo:
-    role: createTodoRole
     handler: src/lambda/http/createTodo.handler
+    iamRoleStatements: 
+      - Effect: Allow
+        Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+        Resource:
+          - "Fn::Join":
+          - ":"
+          - - "arn:aws:logs"
+            - Ref: "AWS::Region"
+            - Ref: "AWS::AccountId"
+            - "log-group:/aws/lambda/*:*:*"
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
     events:
       - http:
           method: post
@@ -75,12 +138,33 @@ functions:
           request:
             schemas:
               application/json: ${file(src/models/create-todo.json)}
-
+                  
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
   UpdateTodo:
-    role: updateTodoRole
     handler: src/lambda/http/updateTodo.handler
+    iamRoleStatements: 
+      - Effect: Allow
+        Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+        Resource:
+          - "Fn::Join":
+          - ":"
+          - - "arn:aws:logs"
+            - Ref: "AWS::Region"
+            - Ref: "AWS::AccountId"
+            - "log-group:/aws/lambda/*:*:*"
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
     events:
       - http:
           method: patch
@@ -94,8 +178,29 @@ functions:
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   DeleteTodo:
-    role: deleteTodoRole
     handler: src/lambda/http/deleteTodo.handler
+    iamRoleStatements: 
+      - Effect: Allow
+        Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+        Resource:
+          - "Fn::Join":
+              - ":"
+              - - "arn:aws:logs"
+                - Ref: "AWS::Region"
+                - Ref: "AWS::AccountId"
+                - "log-group:/aws/lambda/*:*:*"
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:DeleteItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
     events:
       - http:
           method: delete
@@ -103,12 +208,43 @@ functions:
           cors: true
           authorizer: Auth
 
-
   # TODO: Configure this function
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   GenerateUploadUrl:
-    role: generateUploadUrlRole
     handler: src/lambda/http/generateUploadUrl.handler
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+        Resource:
+          - "Fn::Join":
+              - ":"
+              - - "arn:aws:logs"
+                - Ref: "AWS::Region"
+                - Ref: "AWS::AccountId"
+                - "log-group:/aws/lambda/*:*:*"
+      - Effect: Allow
+        Action:
+          - xray:PutTraceSegments
+          - xray:PutTelemetryRecords
+        Resource: "*"
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:UpdateItem
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
+      - Effect: Allow
+        Action:
+          - s3:PutObject
+          - s3:GetObject
+        Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
     events:
       - http:
           method: post
@@ -118,245 +254,6 @@ functions:
 
 resources:
   Resources:
-    authRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: authRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: myAuthRole
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource:
-                    - "Fn::Join":
-                        - ":"
-                        - - "arn:aws:logs"
-                          - Ref: "AWS::Region"
-                          - Ref: "AWS::AccountId"
-                          - "log-group:/aws/lambda/*:*:*"
-                - Effect: Allow
-                  Action:
-                    - xray:PutTraceSegments
-                    - xray:PutTelemetryRecords
-                  Resource: "*"
-    getTodosRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: getTodosRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: getTodosPolicyName
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource:
-                    - "Fn::Join":
-                        - ":"
-                        - - "arn:aws:logs"
-                          - Ref: "AWS::Region"
-                          - Ref: "AWS::AccountId"
-                          - "log-group:/aws/lambda/*:*:*"
-                - Effect: Allow
-                  Action:
-                    - xray:PutTraceSegments
-                    - xray:PutTelemetryRecords
-                  Resource: "*"
-                - Effect: Allow
-                  Action:
-                    - dynamodb:Query
-                  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-                - Effect: Allow
-                  Action:
-                    - dynamodb:Query
-                  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
-    createTodoRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: createTodoRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: createTodoPolicyName
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource:
-                    - "Fn::Join":
-                        - ":"
-                        - - "arn:aws:logs"
-                          - Ref: "AWS::Region"
-                          - Ref: "AWS::AccountId"
-                          - "log-group:/aws/lambda/*:*:*"
-                - Effect: Allow
-                  Action:
-                    - xray:PutTraceSegments
-                    - xray:PutTelemetryRecords
-                  Resource: "*"
-                - Effect: Allow
-                  Action:
-                    - dynamodb:PutItem
-                  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-    updateTodoRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: updateTodoRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: updateTodoPolicyName
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource:
-                    - "Fn::Join":
-                        - ":"
-                        - - "arn:aws:logs"
-                          - Ref: "AWS::Region"
-                          - Ref: "AWS::AccountId"
-                          - "log-group:/aws/lambda/*:*:*"
-                - Effect: Allow
-                  Action:
-                    - xray:PutTraceSegments
-                    - xray:PutTelemetryRecords
-                  Resource: "*"
-                - Effect: Allow
-                  Action:
-                    - dynamodb:UpdateItem
-                  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-    deleteTodoRole: 
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: deleteTodoRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: deleteTodoPolicyName
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource:
-                    - "Fn::Join":
-                        - ":"
-                        - - "arn:aws:logs"
-                          - Ref: "AWS::Region"
-                          - Ref: "AWS::AccountId"
-                          - "log-group:/aws/lambda/*:*:*"
-                - Effect: Allow
-                  Action:
-                    - xray:PutTraceSegments
-                    - xray:PutTelemetryRecords
-                  Resource: "*"
-                - Effect: Allow
-                  Action:
-                    - dynamodb:DeleteItem
-                  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-    generateUploadUrlRole:
-      Type: AWS::IAM::Role
-      Properties:
-        RoleName: generateUploadUrlRole
-        AssumeRolePolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-            - Effect: Allow
-              Principal:
-                Service:
-                  - lambda.amazonaws.com
-              Action: sts:AssumeRole
-        Policies:
-          - PolicyName: generateUploadUrlPolicyName
-            PolicyDocument:
-              Version: "2012-10-17"
-              Statement:
-                - Effect: Allow
-                  Action:
-                    - logs:CreateLogGroup
-                    - logs:CreateLogStream
-                    - logs:PutLogEvents
-                  Resource:
-                    - "Fn::Join":
-                        - ":"
-                        - - "arn:aws:logs"
-                          - Ref: "AWS::Region"
-                          - Ref: "AWS::AccountId"
-                          - "log-group:/aws/lambda/*:*:*"
-                - Effect: Allow
-                  Action:
-                    - xray:PutTraceSegments
-                    - xray:PutTelemetryRecords
-                  Resource: "*"
-                - Effect: Allow
-                  Action:
-                    - dynamodb:UpdateItem
-                    - dynamodb:Query
-                  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
-                - Effect: Allow
-                  Action:
-                    - dynamodb:UpdateItem
-                    - dynamodb:Query
-                  Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
-                - Effect: Allow
-                  Action:
-                    - s3:PutObject
-                    - s3:GetObject
-                  Resource: arn:aws:s3:::${self:provider.environment.ATTACHMENT_S3_BUCKET}/*
     # Add necessary AWS resources. You will need at least the following AWS resources
     # TODO: Fill the properties
     # Feel free to change the names as you like. 
