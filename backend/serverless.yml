@@ -31,61 +31,24 @@ provider:
     # Enable API Gateway logs
     restApi: true
 
-  iam:
-    role:
-      statements:
-        - Effect: Allow
-          Action:
-            - xray:PutTelemetryRecords
-            - xray:PutTraceSegments
-          Resource: "*"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - xray:PutTelemetryRecords
+        - xray:PutTraceSegments
+      Resource: "*"
 
 
 functions:
 
   Auth:
     handler: src/lambda/auth/auth0Authorizer.handler
-    iamRoleStatements:
-    - Effect: Allow
-      Action:
-        - logs:CreateLogGroup
-        - logs:CreateLogStream
-        - logs:PutLogEvents
-      Resource:
-        - "Fn::Join":
-        - ":"
-        - - "arn:aws:logs"
-          - Ref: "AWS::Region"
-          - Ref: "AWS::AccountId"
-          - "log-group:/aws/lambda/*:*:*"
-    - Effect: Allow
-      Action:
-        - xray:PutTraceSegments
-        - xray:PutTelemetryRecords
-      Resource: "*"
 
   # TODO: Configure this function - 
   # Provide iamRoleStatements property for performing Actions on DynamoDB
   GetTodos:
     handler: src/lambda/http/getTodos.handler
-    iamRoleStatements: 
-      - Effect: Allow
-        Action:
-          - logs:CreateLogGroup
-          - logs:CreateLogStream
-          - logs:PutLogEvents
-        Resource:
-          - "Fn::Join":
-          - ":"
-          - - "arn:aws:logs"
-            - Ref: "AWS::Region"
-            - Ref: "AWS::AccountId"
-            - "log-group:/aws/lambda/*:*:*"
-      - Effect: Allow
-        Action:
-          - xray:PutTraceSegments
-          - xray:PutTelemetryRecords
-        Resource: "*"
+    iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:Query
@@ -107,24 +70,7 @@ functions:
   # To validate incoming HTTP requests, we have provided the request schemas in function definition below. 
   CreateTodo:
     handler: src/lambda/http/createTodo.handler
-    iamRoleStatements: 
-      - Effect: Allow
-        Action:
-          - logs:CreateLogGroup
-          - logs:CreateLogStream
-          - logs:PutLogEvents
-        Resource:
-          - "Fn::Join":
-          - ":"
-          - - "arn:aws:logs"
-            - Ref: "AWS::Region"
-            - Ref: "AWS::AccountId"
-            - "log-group:/aws/lambda/*:*:*"
-      - Effect: Allow
-        Action:
-          - xray:PutTraceSegments
-          - xray:PutTelemetryRecords
-        Resource: "*"
+    iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:PutItem
@@ -146,23 +92,6 @@ functions:
     iamRoleStatements: 
       - Effect: Allow
         Action:
-          - logs:CreateLogGroup
-          - logs:CreateLogStream
-          - logs:PutLogEvents
-        Resource:
-          - "Fn::Join":
-          - ":"
-          - - "arn:aws:logs"
-            - Ref: "AWS::Region"
-            - Ref: "AWS::AccountId"
-            - "log-group:/aws/lambda/*:*:*"
-      - Effect: Allow
-        Action:
-          - xray:PutTraceSegments
-          - xray:PutTelemetryRecords
-        Resource: "*"
-      - Effect: Allow
-        Action:
           - dynamodb:UpdateItem
         Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
     events:
@@ -179,24 +108,7 @@ functions:
   # Provide property for setting up CORS, Authorizer, iamRoleStatements
   DeleteTodo:
     handler: src/lambda/http/deleteTodo.handler
-    iamRoleStatements: 
-      - Effect: Allow
-        Action:
-          - logs:CreateLogGroup
-          - logs:CreateLogStream
-          - logs:PutLogEvents
-        Resource:
-          - "Fn::Join":
-              - ":"
-              - - "arn:aws:logs"
-                - Ref: "AWS::Region"
-                - Ref: "AWS::AccountId"
-                - "log-group:/aws/lambda/*:*:*"
-      - Effect: Allow
-        Action:
-          - xray:PutTraceSegments
-          - xray:PutTelemetryRecords
-        Resource: "*"
+    iamRoleStatements:
       - Effect: Allow
         Action:
           - dynamodb:DeleteItem
@@ -213,23 +125,6 @@ functions:
   GenerateUploadUrl:
     handler: src/lambda/http/generateUploadUrl.handler
     iamRoleStatements:
-      - Effect: Allow
-        Action:
-          - logs:CreateLogGroup
-          - logs:CreateLogStream
-          - logs:PutLogEvents
-        Resource:
-          - "Fn::Join":
-              - ":"
-              - - "arn:aws:logs"
-                - Ref: "AWS::Region"
-                - Ref: "AWS::AccountId"
-                - "log-group:/aws/lambda/*:*:*"
-      - Effect: Allow
-        Action:
-          - xray:PutTraceSegments
-          - xray:PutTelemetryRecords
-        Resource: "*"
       - Effect: Allow
         Action:
           - dynamodb:UpdateItem
